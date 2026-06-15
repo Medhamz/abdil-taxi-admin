@@ -151,6 +151,47 @@
             font-size: 11px;
             color: #9CA3AF;
         }
+
+        /* ✅ Styles pour le formulaire de saisie */
+        .code-form {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .code-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 14px 18px;
+            font-size: 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 16px;
+            text-align: center;
+            letter-spacing: 2px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .code-input:focus {
+            outline: none;
+            border-color: #667EEA;
+        }
+
+        .validate-btn {
+            background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .info-text {
+            color: #6B7280;
+            font-size: 14px;
+            margin-top: 16px;
+        }
     </style>
 </head>
 <body>
@@ -161,7 +202,7 @@
 
 <div id="map"></div>
 
-<div class="info-panel">
+<div class="info-panel" id="infoPanel">
     <div class="status-badge" id="statusBadge">
         <span>🟢</span> Chargement...
     </div>
@@ -206,12 +247,39 @@
     let routePoints = [];
     let currentShareCode = null;
 
-    // ✅ URL du backend déployé
     const API_BACKEND_URL = 'https://abdil-taxi-backend.onrender.com';
 
     function getShareCodeFromUrl() {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get('code');
+    }
+
+    function showCodeForm() {
+        const panel = document.getElementById('infoPanel');
+        panel.innerHTML = `
+            <div class="code-form">
+                <h3 style="margin-bottom: 20px;">🔐 Suivi de course</h3>
+                <p style="color: #6B7280; margin-bottom: 20px;">Entrez le code de partage fourni par le client</p>
+                <input type="text" id="shareCodeInput" class="code-input" placeholder="ex: ABC123" maxlength="20">
+                <br>
+                <button class="validate-btn" onclick="validateAndStart()">🔍 Démarrer le suivi</button>
+                <p class="info-text">Le code est fourni par le client via le lien de partage</p>
+            </div>
+        `;
+        document.getElementById('map').style.display = 'none';
+    }
+
+    function validateAndStart() {
+        const input = document.getElementById('shareCodeInput');
+        const code = input.value.trim().toUpperCase();
+        if (code.length === 0) {
+            alert('Veuillez entrer un code de partage');
+            return;
+        }
+        // Mettre à jour l'URL sans recharger
+        const newUrl = `${window.location.pathname}?code=${code}`;
+        window.history.pushState({}, '', newUrl);
+        startTrackingWithCode(code);
     }
 
     function initMap() {
@@ -235,8 +303,6 @@
             },
             animation: google.maps.Animation.DROP
         });
-
-        startTracking();
     }
 
     function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -303,7 +369,6 @@
 
     async function updateLocation() {
         try {
-            // ✅ Appel vers le backend Render
             const response = await fetch(`${API_BACKEND_URL}/api/live/position/${currentShareCode}`);
             if (!response.ok) {
                 if (response.status === 404) stopTracking('Course terminée');
@@ -320,26 +385,66 @@
         }
     }
 
-    function startTracking() {
-        currentShareCode = getShareCodeFromUrl();
-        if (!currentShareCode) {
-            // ✅ Afficher une erreur au lieu de rediriger
-            document.getElementById('statusBadge').innerHTML = '<span>🔴</span> Code de partage manquant';
-            document.getElementById('statusBadge').style.background = '#FFEBEE';
-            document.getElementById('statusBadge').style.color = '#F44336';
-            return;
-        }
+    function startTrackingWithCode(code) {
+        currentShareCode = code;
+        document.getElementById('map').style.display = 'block';
+
+        // Réinitialiser l'affichage
+        const panel = document.getElementById('infoPanel');
+        panel.innerHTML = `
+            <div class="status-badge" id="statusBadge">
+                <span>🟢</span> Connexion...
+            </div>
+            <div class="location-item">
+                <div class="location-icon">📍</div>
+                <div class="location-details">
+                    <div class="location-label">Position actuelle</div>
+                    <div class="location-address" id="currentAddress">Chargement...</div>
+                </div>
+            </div>
+            <div class="eta-info">
+                <div class="eta-item">
+                    <div class="eta-value" id="distance">--</div>
+                    <div class="eta-label">Distance</div>
+                </div>
+                <div class="eta-item">
+                    <div class="eta-value" id="duration">--</div>
+                    <div class="eta-label">Temps</div>
+                </div>
+                <div class="eta-item">
+                    <div class="eta-value" id="speed">--</div>
+                    <div class="eta-label">Vitesse</div>
+                </div>
+            </div>
+            <div class="last-update" id="lastUpdate">Dernière mise à jour: --</div>
+        `;
+
         startTime = Date.now();
         updateLocation();
         updateInterval = setInterval(updateLocation, 3000);
     }
 
+    function startTracking() {
+        currentShareCode = getShareCodeFromUrl();
+
+        if (!currentShareCode) {
+            showCodeForm();
+            return;
+        }
+
+        initMap();
+        startTrackingWithCode(currentShareCode);
+    }
+
     function stopTracking(message) {
         if (updateInterval) clearInterval(updateInterval);
         if (message) {
-            document.getElementById('statusBadge').innerHTML = `<span>🔴</span> ${message}`;
-            document.getElementById('statusBadge').style.background = '#FFEBEE';
-            document.getElementById('statusBadge').style.color = '#F44336';
+            const badge = document.getElementById('statusBadge');
+            if (badge) {
+                badge.innerHTML = `<span>🔴</span> ${message}`;
+                badge.style.background = '#FFEBEE';
+                badge.style.color = '#F44336';
+            }
         }
     }
 
@@ -349,8 +454,7 @@
     }
 
     window.onload = function() {
-        if (typeof google !== 'undefined') initMap();
-        else window.initMap = initMap;
+        startTracking();
     };
 
     window.onbeforeunload = function() {
