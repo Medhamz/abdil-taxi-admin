@@ -206,6 +206,9 @@
     let routePoints = [];
     let currentShareCode = null;
 
+    // ✅ URL du backend déployé
+    const API_BACKEND_URL = 'https://abdil-taxi-backend.onrender.com';
+
     function getShareCodeFromUrl() {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get('code');
@@ -300,7 +303,8 @@
 
     async function updateLocation() {
         try {
-            const response = await fetch(`/api/live/position/${currentShareCode}`);
+            // ✅ Appel vers le backend Render
+            const response = await fetch(`${API_BACKEND_URL}/api/live/position/${currentShareCode}`);
             if (!response.ok) {
                 if (response.status === 404) stopTracking('Course terminée');
                 return;
@@ -319,7 +323,10 @@
     function startTracking() {
         currentShareCode = getShareCodeFromUrl();
         if (!currentShareCode) {
-            window.location.href = '/track/index.html';
+            // ✅ Afficher une erreur au lieu de rediriger
+            document.getElementById('statusBadge').innerHTML = '<span>🔴</span> Code de partage manquant';
+            document.getElementById('statusBadge').style.background = '#FFEBEE';
+            document.getElementById('statusBadge').style.color = '#F44336';
             return;
         }
         startTime = Date.now();
@@ -331,12 +338,14 @@
         if (updateInterval) clearInterval(updateInterval);
         if (message) {
             document.getElementById('statusBadge').innerHTML = `<span>🔴</span> ${message}`;
+            document.getElementById('statusBadge').style.background = '#FFEBEE';
+            document.getElementById('statusBadge').style.color = '#F44336';
         }
     }
 
     function goBack() {
         if (updateInterval) clearInterval(updateInterval);
-        window.location.href = '/track/index.html';
+        window.history.back();
     }
 
     window.onload = function() {
