@@ -2,6 +2,7 @@
 const API_BASE_URL = 'https://abdil-taxi-backend.onrender.com/api/admin';
 const API_BASE_URL_TAXI = 'https://abdil-taxi-backend.onrender.com/api/taxi';
 const API_NOTIFICATIONS_URL = 'https://abdil-taxi-backend.onrender.com/api/notifications';
+const API_DISPUTES_URL = 'https://abdil-taxi-backend.onrender.com/api/disputes'; // ✅ AJOUTÉ
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', function() {
@@ -389,7 +390,7 @@ async function loadDashboard() {
                                             <td>${ride.clientName || '-'}</td>
                                             <td>${ride.pickupAddress || '-'}</td>
                                             <td>${ride.destinationAddress || '-'}</td>
-                                            <td>${ride.estimatedPrice || 0} FCFA\n
+                                            <td>${ride.estimatedPrice || 0} FCFA</td>
                                             <td><span class="status-${(ride.status || 'PENDING').toLowerCase()}">${ride.status || 'PENDING'}</span></td>
                                         </tr>
                                     `).join('')}
@@ -665,14 +666,14 @@ async function loadRides() {
                                         <td>${ride.clientPhone || '-'}</td>
                                         <td>${ride.pickupAddress || '-'}</td>
                                         <td>${ride.destinationAddress || '-'}</td>
-                                        <td>${ride.distance || 0} km\n
-                                        <td>${ride.estimatedPrice || 0} FCFA\n
-                                        <td>${statusBadge}\n
-                                        <td>${statusOptions}\n
-                                        <td><small class="text-danger">${cancelReason}</small>\n
-                                        <td>${ride.driverName || '-'}\n
-                                        <td>${ratingDisplay}\n
-                                        <td>${ride.createdAt ? new Date(ride.createdAt).toLocaleString() : '-'}\n
+                                        <td>${ride.distance || 0} km</td>
+                                        <td>${ride.estimatedPrice || 0} FCFA</td>
+                                        <td>${statusBadge}</td>
+                                        <td>${statusOptions}</td>
+                                        <td><small class="text-danger">${cancelReason}</small></td>
+                                        <td>${ride.driverName || '-'}</td>
+                                        <td>${ratingDisplay}</td>
+                                        <td>${ride.createdAt ? new Date(ride.createdAt).toLocaleString() : '-'}</td>
                                         <td>
                                             <button class="btn btn-sm btn-danger btn-action" onclick="deleteRide(${ride.id})">
                                                 <i class="fas fa-trash"></i>
@@ -1479,8 +1480,8 @@ async function loadScheduledRides() {
                                         <td>${ride.pickupAddress || '-'}</td>
                                         <td>${ride.destinationAddress || '-'}</td>
                                         <td>${new Date(ride.scheduledDateTime).toLocaleString()}</td>
-                                        <td>${ride.estimatedPrice || 0} FCFA\n
-                                        <td>${statusBadge}\n
+                                        <td>${ride.estimatedPrice || 0} FCFA</td>
+                                        <td>${statusBadge}</td>
                                         <td>
                                             <button class="btn btn-sm btn-danger" onclick="deleteScheduledRide(${ride.id})">
                                                 <i class="fas fa-trash"></i>
@@ -1516,8 +1517,8 @@ async function loadDisputes() {
     const content = document.getElementById('content');
 
     try {
-        // ✅ URL CORRIGÉE : utilise API_BASE_URL_TAXI au lieu de API_BASE_URL
-        const response = await fetch(`${API_BASE_URL_TAXI}/disputes/all`);
+        // ✅ URL CORRIGÉE : utilise API_DISPUTES_URL
+        const response = await fetch(`${API_DISPUTES_URL}/all`);
         const disputes = await response.json();
 
         if (!Array.isArray(disputes) || disputes.length === 0) {
@@ -1611,8 +1612,8 @@ async function resolveDispute(id) {
     if (isNaN(refundAmount)) return;
 
     try {
-        // ✅ URL CORRIGÉE : utilise API_BASE_URL_TAXI
-        const response = await fetch(`${API_BASE_URL_TAXI}/disputes/resolve/${id}?resolution=${encodeURIComponent(resolution)}&refundAmount=${refundAmount}`, {
+        // ✅ URL CORRIGÉE : utilise API_DISPUTES_URL
+        const response = await fetch(`${API_DISPUTES_URL}/resolve/${id}?resolution=${encodeURIComponent(resolution)}&refundAmount=${refundAmount}`, {
             method: 'PUT'
         });
 
@@ -1632,8 +1633,8 @@ async function rejectDispute(id) {
     if (!reason) return;
 
     try {
-        // ✅ URL CORRIGÉE : utilise API_BASE_URL_TAXI
-        const response = await fetch(`${API_BASE_URL_TAXI}/disputes/reject/${id}?reason=${encodeURIComponent(reason)}`, {
+        // ✅ URL CORRIGÉE : utilise API_DISPUTES_URL
+        const response = await fetch(`${API_DISPUTES_URL}/reject/${id}?reason=${encodeURIComponent(reason)}`, {
             method: 'PUT'
         });
 
@@ -1695,7 +1696,7 @@ async function loadAdvertising() {
                                     <td>${ad.clientName || '-'}</td>
                                     <td><strong>${ad.productName || '-'}</strong><br><small>${ad.description || ''}</small></td>
                                     <td>${ad.duration}</td>
-                                    <td>${ad.price.toLocaleString()} FCFA\n
+                                    <td>${ad.price.toLocaleString()} FCFA</td>
                                     <td>${ad.paymentMethod === 'CASH' ? '💵 Espèces' : '💰 Porte-monnaie'}</td>
                                     <td><span class="badge bg-${getAdStatusClass(ad.status)}">${getAdStatusLabel(ad.status)}</span></td>
                                     <td>
@@ -1710,7 +1711,7 @@ async function loadAdvertising() {
                                 </tr>
                             `).join('')}
                         </tbody>
-                    <table>
+                    </table>
                 </div>
             </div>
         `;
