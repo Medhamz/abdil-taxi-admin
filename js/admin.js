@@ -1516,7 +1516,8 @@ async function loadDisputes() {
     const content = document.getElementById('content');
 
     try {
-        const response = await fetch(`${API_BASE_URL}/disputes/all`);
+        // ✅ URL CORRIGÉE : utilise API_BASE_URL_TAXI au lieu de API_BASE_URL
+        const response = await fetch(`${API_BASE_URL_TAXI}/disputes/all`);
         const disputes = await response.json();
 
         if (!Array.isArray(disputes) || disputes.length === 0) {
@@ -1541,6 +1542,7 @@ async function loadDisputes() {
                                 <th>Client</th>
                                 <th>Chauffeur</th>
                                 <th>Motif</th>
+                                <th>Description</th>
                                 <th>Statut</th>
                                 <th>Date</th>
                                 <th>Actions</th>
@@ -1549,24 +1551,31 @@ async function loadDisputes() {
                         <tbody>
                             ${disputes.map(dispute => {
                                 let statusBadge = '';
+                                let statusColor = '';
                                 switch(dispute.status) {
                                     case 'PENDING':
-                                        statusBadge = '<span class="badge bg-warning">En attente</span>';
+                                        statusBadge = '<span class="badge bg-warning">⏳ En attente</span>';
+                                        statusColor = 'warning';
                                         break;
                                     case 'RESOLVED':
-                                        statusBadge = '<span class="badge bg-success">Résolu</span>';
+                                        statusBadge = '<span class="badge bg-success">✅ Résolu</span>';
+                                        statusColor = 'success';
                                         break;
                                     case 'REJECTED':
-                                        statusBadge = '<span class="badge bg-danger">Rejeté</span>';
+                                        statusBadge = '<span class="badge bg-danger">❌ Rejeté</span>';
+                                        statusColor = 'danger';
                                         break;
+                                    default:
+                                        statusBadge = '<span class="badge bg-secondary">' + dispute.status + '</span>';
                                 }
                                 return `
                                     <tr>
                                         <td>#${dispute.id}</td>
                                         <td>#${dispute.rideId}</td>
                                         <td>Client #${dispute.clientId}</td>
-                                        <td>Chauffeur #${dispute.driverId}</td>
-                                        <td>${dispute.reason}</td>
+                                        <td>Chauffeur #${dispute.driverId || '-'}</td>
+                                        <td>${dispute.reason || '-'}</td>
+                                        <td><small>${dispute.description ? dispute.description.substring(0, 60) + (dispute.description.length > 60 ? '...' : '') : '-'}</small></td>
                                         <td>${statusBadge}</td>
                                         <td>${new Date(dispute.createdAt).toLocaleString()}</td>
                                         <td>
@@ -1602,7 +1611,8 @@ async function resolveDispute(id) {
     if (isNaN(refundAmount)) return;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/disputes/resolve/${id}?resolution=${encodeURIComponent(resolution)}&refundAmount=${refundAmount}`, {
+        // ✅ URL CORRIGÉE : utilise API_BASE_URL_TAXI
+        const response = await fetch(`${API_BASE_URL_TAXI}/disputes/resolve/${id}?resolution=${encodeURIComponent(resolution)}&refundAmount=${refundAmount}`, {
             method: 'PUT'
         });
 
@@ -1622,7 +1632,8 @@ async function rejectDispute(id) {
     if (!reason) return;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/disputes/reject/${id}?reason=${encodeURIComponent(reason)}`, {
+        // ✅ URL CORRIGÉE : utilise API_BASE_URL_TAXI
+        const response = await fetch(`${API_BASE_URL_TAXI}/disputes/reject/${id}?reason=${encodeURIComponent(reason)}`, {
             method: 'PUT'
         });
 
